@@ -20,6 +20,24 @@ export const esquemaPresupuesto = z.object({
   montoCentavos: z.number().int().positive("El presupuesto debe ser mayor a cero"),
 });
 
+export const esquemaRegistro = z.object({
+  nombre: z
+    .string()
+    .trim()
+    .min(2, "El nombre necesita al menos 2 caracteres")
+    .max(60, "El nombre supera 60 caracteres"),
+  correo: z.email("Correo inválido").max(254, "Correo demasiado largo"),
+  contrasena: z
+    .string()
+    .min(8, "La contraseña necesita al menos 8 caracteres")
+    .max(100, "La contraseña supera 100 caracteres"),
+});
+
+export const esquemaIngreso = z.object({
+  correo: z.email("Correo inválido"),
+  contrasena: z.string().min(1, "Escribe tu contraseña"),
+});
+
 export const esquemaSalario = z.object({
   mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Mes inválido"),
   montoCentavos: z.number().int().min(0, "El salario no puede ser negativo"),

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { pesosACentavos } from "@/lib/dinero";
 import { esquemaMovimiento, esquemaPresupuesto, esquemaSalario } from "@/schemas";
+import { requerirUsuario } from "@/server/sesion";
 
 export type EstadoAccion = { ok: boolean; error?: string; ts?: number };
 
@@ -17,6 +18,7 @@ export async function crearMovimiento(
   _prev: EstadoAccion,
   formData: FormData
 ): Promise<EstadoAccion> {
+  const usuario = await requerirUsuario();
   const montoCentavos = pesosACentavos(String(formData.get("monto") ?? ""));
   const datos = esquemaMovimiento.safeParse({
     tipo: formData.get("tipo"),
@@ -40,6 +42,7 @@ export async function crearMovimiento(
       fecha: new Date(`${datos.data.fecha}T00:00:00.000Z`),
       categoriaId: datos.data.categoriaId,
       nota: datos.data.nota,
+      usuarioId: usuario.id,
     },
   });
   revalidarTodo();
@@ -47,7 +50,9 @@ export async function crearMovimiento(
 }
 
 export async function eliminarMovimiento(id: string): Promise<void> {
-  await db.movimiento.delete({ where: { id } }).catch(() => null);
+  const usuario = await requerirUsuario();
+  // deleteMany con usuarioId: nadie borra movimientos ajenos.
+  await db.movimiento.deleteMany({ where: { id, usuarioId: usuario.id } });
   revalidarTodo();
 }
 
@@ -55,6 +60,7 @@ export async function guardarPresupuesto(
   _prev: EstadoAccion,
   formData: FormData
 ): Promise<EstadoAccion> {
+  const usuario = await requerirUsuario();
   const montoCentavos = pesosACentavos(String(formData.get("monto") ?? ""));
   const datos = esquemaPresupuesto.safeParse({
     mes: formData.get("mes"),
@@ -65,8 +71,14 @@ export async function guardarPresupuesto(
     return { ok: false, error: datos.error.issues[0]?.message ?? "Datos inválidos" };
   }
   await db.presupuesto.upsert({
-    where: { categoriaId_mes: { categoriaId: datos.data.categoriaId, mes: datos.data.mes } },
-    create: datos.data,
+    where: {
+      usuarioId_categoriaId_mes: {
+        usuarioId: usuario.id,
+        categoriaId: datos.data.categoriaId,
+        mes: datos.data.mes,
+      },
+    },
+    create: { ...datos.data, usuarioId: usuario.id },
     update: { montoCentavos: datos.data.montoCentavos },
   });
   revalidarTodo();
@@ -74,7 +86,8 @@ export async function guardarPresupuesto(
 }
 
 export async function eliminarPresupuesto(id: string): Promise<void> {
-  await db.presupuesto.delete({ where: { id } }).catch(() => null);
+  const usuario = await requerirUsuario();
+  await db.presupuesto.deleteMany({ where: { id, usuarioId: usuario.id } });
   revalidarTodo();
 }
 
@@ -82,6 +95,7 @@ export async function guardarSalario(
   _prev: EstadoAccion,
   formData: FormData
 ): Promise<EstadoAccion> {
+  const usuario = await requerirUsuario();
   const montoCentavos = pesosACentavos(String(formData.get("monto") ?? ""));
   const datos = esquemaSalario.safeParse({
     mes: formData.get("mes"),
@@ -91,8 +105,8 @@ export async function guardarSalario(
     return { ok: false, error: datos.error.issues[0]?.message ?? "Datos inválidos" };
   }
   await db.salarioMensual.upsert({
-    where: { mes: datos.data.mes },
-    create: datos.data,
+    where: { usuarioId_mes: { usuarioId: usuario.id, mes: datos.data.mes } },
+    create: { ...datos.data, usuarioId: usuario.id },
     update: { montoCentavos: datos.data.montoCentavos },
   });
   revalidarTodo();

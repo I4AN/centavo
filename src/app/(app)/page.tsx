@@ -12,6 +12,7 @@ import {
   movimientosDelMes,
   totalesDelMes,
 } from "@/server/consultas";
+import { requerirUsuario } from "@/server/sesion";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +21,15 @@ export default async function PaginaResumen({
 }: {
   searchParams: Promise<{ mes?: string }>;
 }) {
+  const usuario = await requerirUsuario();
   const params = await searchParams;
   const mes = esMesValido(params.mes) ? params.mes : mesActual();
 
   const [totales, porCategoria, diario, movimientos] = await Promise.all([
-    totalesDelMes(mes),
-    gastoPorCategoria(mes),
-    gastoDiario(mes),
-    movimientosDelMes(mes),
+    totalesDelMes(usuario.id, mes),
+    gastoPorCategoria(usuario.id, mes),
+    gastoDiario(usuario.id, mes),
+    movimientosDelMes(usuario.id, mes),
   ]);
   const recientes = movimientos.slice(0, 7);
   const hayDatos = movimientos.length > 0;

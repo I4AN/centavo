@@ -16,6 +16,28 @@ enum TipoMovimiento {
   GASTO
 }
 
+model Usuario {
+  id             String           @id @default(cuid())
+  correo         String           @unique
+  nombre         String
+  hashContrasena String
+  createdAt      DateTime         @default(now())
+  sesiones       Sesion[]
+  movimientos    Movimiento[]
+  presupuestos   Presupuesto[]
+  salarios       SalarioMensual[]
+}
+
+model Sesion {
+  token     String   @id
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  expiraEn  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([usuarioId])
+}
+
 model Categoria {
   id           String         @id @default(cuid())
   nombre       String         @unique
@@ -35,9 +57,11 @@ model Movimiento {
   nota          String?
   categoria     Categoria      @relation(fields: [categoriaId], references: [id])
   categoriaId   String
+  usuario       Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String
   createdAt     DateTime       @default(now())
 
-  @@index([fecha])
+  @@index([usuarioId, fecha])
   @@index([categoriaId, fecha])
 }
 
@@ -47,14 +71,20 @@ model Presupuesto {
   montoCentavos Int
   categoria     Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId   String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String
   updatedAt     DateTime  @updatedAt
 
-  @@unique([categoriaId, mes])
-  @@index([mes])
+  @@unique([usuarioId, categoriaId, mes])
+  @@index([usuarioId, mes])
 }
 
 model SalarioMensual {
-  mes           String   @id // "YYYY-MM"
+  mes           String // "YYYY-MM"
   montoCentavos Int
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String
   updatedAt     DateTime @updatedAt
+
+  @@id([usuarioId, mes])
 }

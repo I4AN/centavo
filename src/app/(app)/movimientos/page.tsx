@@ -4,6 +4,7 @@ import { FormularioMovimiento } from "@/components/formulario-movimiento";
 import { SelectorMes } from "@/components/selector-mes";
 import { esMesValido, hoyIso, mesActual } from "@/lib/fechas";
 import { listarCategorias, movimientosDelMes } from "@/server/consultas";
+import { requerirUsuario } from "@/server/sesion";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,12 @@ export default async function PaginaMovimientos({
 }: {
   searchParams: Promise<{ mes?: string }>;
 }) {
+  const usuario = await requerirUsuario();
   const params = await searchParams;
   const mes = esMesValido(params.mes) ? params.mes : mesActual();
 
   const [movimientos, categorias] = await Promise.all([
-    movimientosDelMes(mes),
+    movimientosDelMes(usuario.id, mes),
     listarCategorias(),
   ]);
 

@@ -6,6 +6,7 @@ import { SelectorMes } from "@/components/selector-mes";
 import { formatearCOP } from "@/lib/dinero";
 import { esMesValido, mesActual } from "@/lib/fechas";
 import { listarCategorias, presupuestosDelMes, salarioDelMes } from "@/server/consultas";
+import { requerirUsuario } from "@/server/sesion";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +15,13 @@ export default async function PaginaPresupuestos({
 }: {
   searchParams: Promise<{ mes?: string }>;
 }) {
+  const usuario = await requerirUsuario();
   const params = await searchParams;
   const mes = esMesValido(params.mes) ? params.mes : mesActual();
 
   const [presupuestos, salario, categorias] = await Promise.all([
-    presupuestosDelMes(mes),
-    salarioDelMes(mes),
+    presupuestosDelMes(usuario.id, mes),
+    salarioDelMes(usuario.id, mes),
     listarCategorias(),
   ]);
 

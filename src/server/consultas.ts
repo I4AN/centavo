@@ -1,16 +1,19 @@
 import { db } from "@/lib/db";
 import { diasDelMes, rangoMes } from "@/lib/fechas";
 
+// Toda consulta de datos recibe el usuarioId de la sesión:
+// cada usuario ve únicamente lo suyo.
+
 /** Totales del mes: ingresos, gastos y balance (centavos). */
-export async function totalesDelMes(mes: string) {
+export async function totalesDelMes(usuarioId: string, mes: string) {
   const fecha = rangoMes(mes);
   const [ingresos, gastos] = await Promise.all([
     db.movimiento.aggregate({
-      where: { fecha, tipo: "INGRESO" },
+      where: { usuarioId, fecha, tipo: "INGRESO" },
       _sum: { montoCentavos: true },
     }),
     db.movimiento.aggregate({
-      where: { fecha, tipo: "GASTO" },
+      where: { usuarioId, fecha, tipo: "GASTO" },
       _sum: { montoCentavos: true },
     }),
   ]);
@@ -24,10 +27,10 @@ export async function totalesDelMes(mes: string) {
 }
 
 /** Gasto agrupado por categoría, de mayor a menor. */
-export async function gastoPorCategoria(mes: string) {
+export async function gastoPorCategoria(usuarioId: string, mes: string) {
   const grupos = await db.movimiento.groupBy({
     by: ["categoriaId"],
-    where: { fecha: rangoMes(mes), tipo: "GASTO" },
+    where: { usuarioId, fecha: rangoMes(mes), tipo: "GASTO" },
     _sum: { montoCentavos: true },
   });
   if (grupos.length === 0) return [];
@@ -46,9 +49,9 @@ export async function gastoPorCategoria(mes: string) {
 }
 
 /** Gasto por día del mes, con ceros en los días sin gasto (idea portada de la v1). */
-export async function gastoDiario(mes: string) {
+export async function gastoDiario(usuarioId: string, mes: string) {
   const movimientos = await db.movimiento.findMany({
-    where: { fecha: rangoMes(mes), tipo: "GASTO" },
+    where: { usuarioId, fecha: rangoMes(mes), tipo: "GASTO" },
     select: { fecha: true, montoCentavos: true },
   });
   const porDia = new Map<number, number>();
@@ -64,25 +67,25 @@ export async function gastoDiario(mes: string) {
 }
 
 /** Movimientos del mes, más recientes primero. */
-export async function movimientosDelMes(mes: string) {
+export async function movimientosDelMes(usuarioId: string, mes: string) {
   return db.movimiento.findMany({
-    where: { fecha: rangoMes(mes) },
+    where: { usuarioId, fecha: rangoMes(mes) },
     include: { categoria: { select: { nombre: true, grupo: true } } },
     orderBy: [{ fecha: "desc" }, { createdAt: "desc" }],
   });
 }
 
 /** Presupuestos del mes junto al gasto real de cada categoría. */
-export async function presupuestosDelMes(mes: string) {
+export async function presupuestosDelMes(usuarioId: string, mes: string) {
   const [presupuestos, gastos] = await Promise.all([
     db.presupuesto.findMany({
-      where: { mes },
+      where: { usuarioId, mes },
       include: { categoria: { select: { nombre: true, grupo: true } } },
       orderBy: { categoria: { nombre: "asc" } },
     }),
     db.movimiento.groupBy({
       by: ["categoriaId"],
-      where: { fecha: rangoMes(mes), tipo: "GASTO" },
+      where: { usuarioId, fecha: rangoMes(mes), tipo: "GASTO" },
       _sum: { montoCentavos: true },
     }),
   ]);
@@ -97,8 +100,10 @@ export async function presupuestosDelMes(mes: string) {
   }));
 }
 
-export async function salarioDelMes(mes: string) {
-  const salario = await db.salarioMensual.findUnique({ where: { mes } });
+export async function salarioDelMes(usuarioId: string, mes: string) {
+  const salario = await db.salarioMensual.findUnique({
+    where: { usuarioId_mes: { usuarioId, mes } },
+  });
   return salario?.montoCentavos ?? null;
 }
 
