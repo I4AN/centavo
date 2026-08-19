@@ -1,0 +1,60 @@
+// Centavo — modelo de datos
+// Decisión clave: todo monto se guarda como Int en centavos de COP.
+// Nunca floats para dinero. De ahí el nombre del proyecto.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoMovimiento {
+  INGRESO
+  GASTO
+}
+
+model Categoria {
+  id           String         @id @default(cuid())
+  nombre       String         @unique
+  grupo        String
+  tipo         TipoMovimiento
+  movimientos  Movimiento[]
+  presupuestos Presupuesto[]
+
+  @@index([tipo, grupo])
+}
+
+model Movimiento {
+  id            String         @id @default(cuid())
+  tipo          TipoMovimiento
+  montoCentavos Int
+  fecha         DateTime       @db.Date
+  nota          String?
+  categoria     Categoria      @relation(fields: [categoriaId], references: [id])
+  categoriaId   String
+  createdAt     DateTime       @default(now())
+
+  @@index([fecha])
+  @@index([categoriaId, fecha])
+}
+
+model Presupuesto {
+  id            String    @id @default(cuid())
+  mes           String // "YYYY-MM"
+  montoCentavos Int
+  categoria     Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId   String
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([categoriaId, mes])
+  @@index([mes])
+}
+
+model SalarioMensual {
+  mes           String   @id // "YYYY-MM"
+  montoCentavos Int
+  updatedAt     DateTime @updatedAt
+}

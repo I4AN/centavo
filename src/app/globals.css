@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/*
+ * Centavo — sistema visual "libro contable"
+ * Papel claro con retícula, tinta verde para ingresos, cobre para gastos,
+ * y números tabulares en toda cifra. La identidad vive en los números.
+ *
+ * Upgrade opcional (2 líneas en layout.tsx): cargar "Archivo" para display
+ * y "Spline Sans Mono" para cifras vía next/font/google al desplegar.
+ */
+
+@theme {
+  --color-papel: #f2f1ea;
+  --color-carta: #ffffff;
+  --color-tinta: #23271f;
+  --color-tinta-suave: #6d7166;
+  --color-linea: #ddd9c9;
+  --color-verde: #2e6b4f;
+  --color-verde-tenue: #e4efe7;
+  --color-cobre: #9a5b33;
+  --color-cobre-tenue: #f4e9df;
+  --color-alerta: #b3401e;
+
+  --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+  --font-numeros: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono",
+    Menlo, Consolas, monospace;
+}
+
+body {
+  background-color: var(--color-papel);
+  color: var(--color-tinta);
+  /* retícula de papel contable, casi imperceptible */
+  background-image: linear-gradient(
+      to bottom,
+      rgba(35, 39, 31, 0.035) 1px,
+      transparent 1px
+    );
+  background-size: 100% 34px;
+}
+
+::selection {
+  background: var(--color-verde);
+  color: var(--color-carta);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-verde);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Toda cifra monetaria usa esta clase: tabular y monoespaciada. */
+  .num {
+    font-family: var(--font-numeros);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    color: var(--color-tinta-suave);
+  }
+
+  .tarjeta {
+    background: var(--color-carta);
+    border: 1px solid var(--color-linea);
+    border-radius: 10px;
+  }
+
+  .campo {
+    width: 100%;
+    background: var(--color-carta);
+    border: 1px solid var(--color-linea);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-verde);
+    color: var(--color-carta);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 120ms ease;
+  }
+  .boton:hover {
+    opacity: 0.92;
+  }
+  .boton:disabled {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
