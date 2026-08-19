@@ -95,9 +95,9 @@ git clone https://github.com/i4an/centavo.git
 cd centavo
 npm install
 
-# Postgres local con Docker (o pega tu cadena de Neon en .env)
-docker run -d --name centavo-db -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=centavo -p 5432:5432 postgres:16
+# Postgres local con Docker (o pega tu cadena de Neon en .env).
+# En una sola línea para que funcione igual en bash, PowerShell y CMD:
+docker run -d --name centavo-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=centavo -p 5432:5432 postgres:16
 
 cp .env.example .env
 # DATABASE_URL="postgresql://postgres:postgres@localhost:5432/centavo"
