@@ -2,6 +2,9 @@
 
 **Cada centavo cuenta.** Finanzas personales en pesos colombianos: registra ingresos y gastos, define presupuestos por categoría y mira tu mes como lo que es — una suma de libro contable.
 
+**[▶ Pruébala en vivo](https://centavo-black.vercel.app)** — crea tu cuenta y registra tu primer movimiento en menos de un minuto.
+
+[![Demo](https://img.shields.io/badge/demo-centavo--black.vercel.app-2e6b4f)](https://centavo-black.vercel.app)
 ![Next.js](https://img.shields.io/badge/Next.js_15-App_Router-000?logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)
@@ -132,7 +135,7 @@ Abre http://localhost:3000, crea tu cuenta y empieza de cero: el primer movimien
 
 ## Deploy
 
-Pensado para **Vercel + Neon**: importa el repo en Vercel, define `DATABASE_URL` y listo. El CI de GitHub Actions corre typecheck y build en cada push.
+En producción con **Vercel + Neon**: [centavo-black.vercel.app](https://centavo-black.vercel.app). Para desplegar tu propia instancia: importa el repo en Vercel, define `DATABASE_URL` apuntando a tu Postgres y corre `prisma db push` + `db:seed` contra esa base. El CI de GitHub Actions corre typecheck y build en cada push.
 
 ## Roadmap
 
